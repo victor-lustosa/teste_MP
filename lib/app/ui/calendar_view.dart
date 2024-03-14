@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:teste_mp/app/core/domain/entities/user_entity.dart';
-import 'package:teste_mp/app/ui/components/dialogs/error_dialog_widget.dart';
-import 'package:teste_mp/app/ui/components/dialogs/punch_the_clock_dialog_mixin.dart';
-import 'package:teste_mp/app/ui/components/dialogs/user_register_dialog_mixin.dart';
-import 'package:teste_mp/app/ui/utils/date_util.dart';
-import 'package:teste_mp/app/ui/view_models/data_view_model.dart';
 import 'package:intl/intl.dart';
 import '../core/domain/entities/punch_the_clock_entity.dart';
+import '../core/domain/entities/user_entity.dart';
 import 'blocs/calendar_bloc.dart';
 import 'components/buttons/elevated_button_widget.dart';
+import 'components/calendar/calendar_widget.dart';
 import 'components/dialogs/clocks_list_dialog_mixin.dart';
+import 'components/dialogs/error_dialog_widget.dart';
+import 'components/dialogs/punch_the_clock_dialog_mixin.dart';
+import 'components/dialogs/user_register_dialog_mixin.dart';
 import 'components/dropdowns/dropdown_widget.dart';
 import 'components/loading/loading_widget.dart';
+import 'view_models/data_view_model.dart';
 
 class CalendarView extends StatefulWidget {
   const CalendarView({super.key});
@@ -29,21 +29,11 @@ class _CalendarViewState extends State<CalendarView>
         PunchTheClockDialogMixin,
         ClocksListDialogMixin {
   final DataViewModel viewModel = Modular.get<DataViewModel>();
-  CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now();
   late List<UserEntity> usersList;
   String userSelected = '';
-  DateTime? _selectedDay;
   late double vWith;
   final CalendarBloc bloc = Modular.get<CalendarBloc>();
 
-  final _nameKey = GlobalKey<FormState>();
-  final _dateKey = GlobalKey<FormState>();
-  final _timeKey = GlobalKey<FormState>();
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
 
   @override
   void initState() {
@@ -99,6 +89,8 @@ class _CalendarViewState extends State<CalendarView>
                         child: Form(
                           autovalidateMode: AutovalidateMode.always,
                           child: DropdownWidget(
+                            width: 160,
+                            height: 44,
                             usersList.map((e) => e.name).toList(),
                             (String value) {
                               setState(
@@ -108,8 +100,7 @@ class _CalendarViewState extends State<CalendarView>
                               );
                             },
                             "Usuário",
-                            width: 160,
-                            height: 44,
+
                           ),
                         ),
                       ),
@@ -128,10 +119,6 @@ class _CalendarViewState extends State<CalendarView>
                                 if (userSelected != '') {
                                   Modular.to.push(
                                     clockDialog(
-                                      timeKey: _timeKey,
-                                      dateKey: _dateKey,
-                                      dateController: _dateController,
-                                      timeController: _timeController,
                                       userEntity: usersList.firstWhere(
                                           (e) => e.name == userSelected),
                                       modelView: viewModel,
@@ -161,8 +148,6 @@ class _CalendarViewState extends State<CalendarView>
                               action: () {
                                 Modular.to.push(
                                   userDialog(
-                                    fieldKey: _nameKey,
-                                    controller: _nameController,
                                     viewModel: viewModel,
                                   ),
                                 );
@@ -194,73 +179,52 @@ class _CalendarViewState extends State<CalendarView>
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.black12),
                         ),
-                        margin: const EdgeInsets.only(left: 15,right: 15,bottom: 20),
+                        margin: const EdgeInsets.only(
+                          left: 15,
+                          right: 15,
+                          bottom: 20,
+                        ),
                         child: Center(
-                          child: TableCalendar(
-                            calendarStyle: const CalendarStyle(
-                              todayDecoration: BoxDecoration(
-                                color: Colors.cyan,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            firstDay: kFirstDay,
-                            lastDay: kLastDay,
-                            focusedDay: _focusedDay,
-                            calendarFormat: _calendarFormat,
-                            selectedDayPredicate: (day) {
-                              // Use `selectedDayPredicate` to determine which day is currently selected.
-                              // If this returns true, then `day` will be marked as selected.
-
-                              // Using `isSameDay` is recommended to disregard
-                              // the time-part of compared DateTime objects.
-                              return isSameDay(_selectedDay, day);
-                            },
-                            onDaySelected: (selectedDay, focusedDay) async {
-                              if (userSelected != '') {
-                                List<PunchTheClockEntity> clocksList = await viewModel.getClocks(
-                                        DateFormat('dd/MM/yyyy').format(selectedDay), userSelected);
-                                if (clocksList.isNotEmpty) {
-                                  Modular.to.push(
-                                    clocksDialog(
-                                      viewModel: viewModel,
-                                      user: usersList.firstWhere(
-                                          (e) => e.name == userSelected),
-                                      clocksList: clocksList,
-                                    ),
-                                  );
+                          child: CalendarWidget(
+                            action: (selectedDay, focusedDay) async {
+                              {
+                                if (userSelected != '') {
+                                  List<PunchTheClockEntity> clocksList =
+                                      await viewModel.getClocks(
+                                          DateFormat('dd/MM/yyyy')
+                                              .format(selectedDay),
+                                          userSelected);
+                                  if (clocksList.isNotEmpty) {
+                                    Modular.to.push(
+                                      clocksDialog(
+                                        viewModel: viewModel,
+                                        user: usersList.firstWhere(
+                                            (e) => e.name == userSelected),
+                                        clocksList: clocksList,
+                                      ),
+                                    );
+                                  } else {
+                                    showCustomErrorDialog(
+                                        context: context,
+                                        title: 'Não há batidas',
+                                        message:
+                                            'Não há batidas registradas nesse dia.');
+                                  }
                                 } else {
                                   showCustomErrorDialog(
                                       context: context,
-                                      title: 'Não há batidas',
+                                      title: 'Faltam dados',
                                       message:
-                                          'Não há batidas registradas nesse dia.');
+                                          'Você precisa informar um usuario.');
                                 }
-                              } else {
-                                showCustomErrorDialog(
-                                    context: context,
-                                    title: 'Faltam dados',
-                                    message:
-                                        'Você precisa informar um usuario.');
+                                if (!isSameDay(viewModel.selectedDay, selectedDay)) {
+                                  // Call `setState()` when updating the selected day
+                                  setState(() {
+                                    viewModel.selectedDay = selectedDay;
+                                    viewModel.focusedDay = focusedDay;
+                                  });
+                                }
                               }
-                              if (!isSameDay(_selectedDay, selectedDay)) {
-                                // Call `setState()` when updating the selected day
-                                setState(() {
-                                  _selectedDay = selectedDay;
-                                  _focusedDay = focusedDay;
-                                });
-                              }
-                            },
-                            onFormatChanged: (format) {
-                              if (_calendarFormat != format) {
-                                // Call `setState()` when updating calendar format
-                                setState(() {
-                                  _calendarFormat = format;
-                                });
-                              }
-                            },
-                            onPageChanged: (focusedDay) {
-                              // No need to call `setState()` here
-                              _focusedDay = focusedDay;
                             },
                           ),
                         ),

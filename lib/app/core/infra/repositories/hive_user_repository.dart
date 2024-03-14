@@ -6,7 +6,7 @@ import '../dtos/hive_dtos/hive_user_dto.dart';
 import 'hive_clock_repository.dart';
 export 'package:hive_flutter/hive_flutter.dart';
 
-class HiveUserRepository implements IRepository,IGetUsersRepository {
+class HiveUserRepository implements IUsersRepository {
   late Box<HiveUserDTO> box;
   List<String> params = [];
 
@@ -24,7 +24,7 @@ class HiveUserRepository implements IRepository,IGetUsersRepository {
   Future<void> add(String path, data) async {}
 
   @override
-  Future<void> update(String path, data) async {
+  Future<void> update(data) async {
     box.put(
       data.id,
       UserAdapter.toDTO(data),

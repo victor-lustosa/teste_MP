@@ -5,7 +5,7 @@ import '../dtos/hive_dtos/hive_punch_the_clock_dto.dart';
 import 'hive_clock_repository.dart';
 export 'package:hive_flutter/hive_flutter.dart';
 
-class HiveClockRepository implements IRepository,IGetCLocksRepository {
+class HiveClockRepository implements ICLocksRepository {
   late Box<HivePunchTheClockDTO> box;
   List<String> params = [];
 
@@ -21,10 +21,7 @@ class HiveClockRepository implements IRepository,IGetCLocksRepository {
   }
 
   @override
-  Future<void> add(String path, data) async {}
-
-  @override
-  Future<void> update(String path, data) async {
+  Future<void> update(data) async {
     box.put(
       data.id,
       ClockAdapter.toDTO(data),

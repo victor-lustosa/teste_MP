@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:teste_mp/app/core/domain/entities/user_entity.dart';
 
+import '../../core/domain/entities/user_entity.dart';
 import '../../core/infra/repositories/hive_user_repository.dart';
 
 class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {

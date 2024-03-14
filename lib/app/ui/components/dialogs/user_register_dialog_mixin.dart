@@ -1,21 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:teste_mp/app/core/domain/entities/user_entity.dart';
-import 'package:teste_mp/app/ui/components/buttons/icon_button_widget.dart';
 
+import '../../../core/domain/entities/user_entity.dart';
 import '../../blocs/calendar_bloc.dart';
 import '../../utils/id_util.dart';
 import '../../view_models/data_view_model.dart';
 import '../buttons/elevated_button_widget.dart';
+import '../buttons/icon_button_widget.dart';
 import '../forms/form_field_widget.dart';
 import 'error_dialog_widget.dart';
 
 mixin UserRegisterlDialogMixin {
   @pragma('vm:entry-point')
+  final _nameKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+
   Route<Object?> userDialog({
-    required Key fieldKey,
-    required TextEditingController controller,
     required DataViewModel viewModel,
   }) {
     late Orientation orientation;
@@ -93,9 +94,9 @@ mixin UserRegisterlDialogMixin {
                                 border: Border.all(color: Colors.black26),
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              key: fieldKey,
+                              key: _nameKey,
                               cursorColor: Colors.black26,
-                              controller: controller,
+                              controller: _nameController,
                               inputDecoration: const InputDecoration(
                                 isDense: true,
                                 hintText: "Nome",
@@ -125,15 +126,15 @@ mixin UserRegisterlDialogMixin {
                               ),
                               backgroundColor: Colors.blue,
                               action: () {
-                                if (controller.text != '') {
+                                if (_nameController.text != '') {
                                   viewModel.registerUser(
                                     UserEntity(
                                         id: IdUtil.create(8),
-                                        name: controller.text),
+                                        name: _nameController.text),
                                   );
                                   Modular.get<CalendarBloc>()
                                       .add(GetUsersInHiveEvent());
-                                  controller.text = '';
+                                  _nameController.text = '';
                                   Modular.to.pop(context);
                                 } else {
                                   showCustomErrorDialog(

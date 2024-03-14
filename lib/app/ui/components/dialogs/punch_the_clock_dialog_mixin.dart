@@ -1,30 +1,28 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:teste_mp/app/core/domain/entities/punch_the_clock_entity.dart';
-import 'package:teste_mp/app/core/domain/entities/user_entity.dart';
-import 'package:teste_mp/app/ui/components/buttons/icon_button_widget.dart';
-import 'package:teste_mp/app/ui/view_models/data_view_model.dart';
 import 'package:intl/intl.dart';
+import '../../../core/domain/entities/punch_the_clock_entity.dart';
+import '../../../core/domain/entities/user_entity.dart';
 import '../../utils/id_util.dart';
+import '../../view_models/data_view_model.dart';
 import '../buttons/elevated_button_widget.dart';
+import '../buttons/icon_button_widget.dart';
 import '../dropdowns/dropdown_widget.dart';
 import '../forms/form_field_widget.dart';
 import 'error_dialog_widget.dart';
 
 mixin PunchTheClockDialogMixin {
   DateFormat dateFormat = DateFormat("dd-MM-yyyy");
-  TextEditingController hourController = TextEditingController();
-  TextEditingController minutesController = TextEditingController();
+  final TextEditingController _hourController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _minutesController = TextEditingController();
+  final _dateKey = GlobalKey<FormState>();
 
   @pragma('vm:entry-point')
   Route<Object?> clockDialog({
     required UserEntity userEntity,
     required DataViewModel modelView,
-    required Key timeKey,
-    required Key dateKey,
-    required TextEditingController dateController,
-    required TextEditingController timeController,
   }) {
     late Orientation orientation;
     return RawDialogRoute<void>(
@@ -104,9 +102,9 @@ mixin PunchTheClockDialogMixin {
                               border: Border.all(color: Colors.black26),
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            key: dateKey,
+                            key: _dateKey,
                             cursorColor: Colors.black26,
-                            controller: dateController,
+                            controller: _dateController,
                             inputDecoration: const InputDecoration(
                               isDense: true,
                               hintText: "dd-MM-yyyy",
@@ -159,11 +157,11 @@ mixin PunchTheClockDialogMixin {
                                       autovalidateMode: AutovalidateMode.always,
                                       child: DropdownWidget(
                                         height: 44,
-                                        width: 100,
+                                        width: 80,
                                         //  usersList.map((e) => e.name).toList(),
                                         IdUtil.hours,
                                         (String value) {
-                                          hourController.text = value;
+                                          _hourController.text = value;
                                         },
                                         "Hora",
                                       ),
@@ -195,10 +193,10 @@ mixin PunchTheClockDialogMixin {
                                       autovalidateMode: AutovalidateMode.always,
                                       child: DropdownWidget(
                                         height: 44,
-                                        width: 100,
+                                        width: 80,
                                         IdUtil.minutes,
                                         (String value) {
-                                          minutesController.text = value;
+                                          _minutesController.text = value;
                                         },
                                         "Minuto",
                                       ),
@@ -219,23 +217,33 @@ mixin PunchTheClockDialogMixin {
                               ),
                               backgroundColor: Colors.blue,
                               action: () {
-                                if (dateController.text != '' &&
-                                    hourController.text != '' &&
-                                    minutesController.text != '') {
-                                  modelView.registerClock(
-                                    PunchTheClockEntity(
-                                      id: IdUtil.create(8),
-                                      user: userEntity,
-                                      time:
-                                          '${hourController.text}:${minutesController.text}',
-                                      date:
-                                          dateFormat.parse(dateController.text),
-                                    ),
-                                  );
-                                  dateController.text = '';
-                                  hourController.text = '';
-                                  minutesController.text = '';
-                                  Modular.to.pop(context);
+                                if (_dateController.text != '' &&
+                                    _hourController.text != '' &&
+                                    _minutesController.text != '') {
+                                  try{
+                                    modelView.registerClock(
+                                      PunchTheClockEntity(
+                                        id: IdUtil.create(8),
+                                        user: userEntity,
+                                        time:
+                                        '${_hourController.text}:${_minutesController.text}',
+                                        date: dateFormat
+                                            .parse(_dateController.text),
+                                      ),
+                                    );
+                                    _dateController.text = '';
+                                    _hourController.text = '';
+                                    _minutesController.text = '';
+                                    Modular.to.pop(context);
+                                  } catch(e){
+                                    showCustomErrorDialog(
+                                        context: context,
+                                        title: 'Campo incorreto',
+                                        message:
+                                        'Você precisa informar uma data válida.');
+                                  }
+
+
                                 } else {
                                   showCustomErrorDialog(
                                       context: context,

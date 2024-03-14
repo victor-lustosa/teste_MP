@@ -31,8 +31,8 @@ class _DropdownWidgetState extends State<DropdownWidget> {
             child: SizedBox(
               width: widget.width,
               height: widget.height,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 17, left: 25),
+              child: Container(
+                margin: const EdgeInsets.only(top: 17, left: 25),
                 child: Text(
                   val,
                   style: const TextStyle(fontSize: 12,color: Colors.black45),
@@ -42,17 +42,12 @@ class _DropdownWidgetState extends State<DropdownWidget> {
           );
         },
       ).toList(),
-      hint: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 5, left: 25),
-            child: Text(
-              widget.name,
-              style: const TextStyle(fontSize: 12,color: Colors.black45),
-            ),
-          ),
-        ],
+      hint: Container(
+        margin:  EdgeInsets.only(left: 25, right: MediaQuery.of(context).size.width * .1,top: 5),
+        child: Text(
+          widget.name,
+          style: const TextStyle(fontSize: 12,color: Colors.black45),
+        ),
       ),
       style: const TextStyle(fontSize: 12),
       onChanged: (newValue) {
